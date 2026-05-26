@@ -12,7 +12,12 @@ export class TodoPage {
 
   constructor(page: Page) {
     this.page = page;
+    // Change this: this is actual locator
     this.input = page.getByPlaceholder('What needs to be done?');
+
+    // To this (deliberately broken): We do this to test the AI healing functionality
+    // this.input = page.getByPlaceholder('THIS WILL NOT MATCH ANYTHING');
+
     this.todoItems = page.locator('.todo-list li');
     this.todoCount = page.locator('.todo-count');
   }
@@ -24,17 +29,16 @@ export class TodoPage {
 
   async addTodo(text: string) {
     try {
-      await resilientFill({
-        description: 'todo input field',
-        primary: this.input,
-        fallbacks: [
-          this.page.locator('.new-todo'),
-          this.page.locator('input[type="text"]'),
-        ],
-      }, text);
-      await this.input.press('Enter');
+      const workingLocator = await resilientFill(
+        {
+          description: 'todo input field',
+          primary: this.input,
+          fallbacks: [this.page.locator('.new-todo'), this.page.locator('input[type="text"]')],
+        },
+        text,
+      );
+      await this.page.keyboard.press('Enter');
     } catch {
-      // All locators failed — ask AI for help
       const result = await aiHeal(this.page, 'todo text input field');
       if (result.healed) {
         console.log(`[AI HEALER] Update your locator to: ${result.suggestedLocator}`);

@@ -6,9 +6,7 @@ export interface ResilientLocatorOptions {
   fallbacks?: Locator[];
 }
 
-export async function resilientClick(
-  options: ResilientLocatorOptions
-): Promise<void> {
+export async function resilientClick(options: ResilientLocatorOptions): Promise<void> {
   const { description, primary, fallbacks = [] } = options;
   const all = [primary, ...fallbacks];
 
@@ -22,7 +20,9 @@ export async function resilientClick(
       }
       return;
     } catch {
-      console.log(`[RETRY] "${description}" — locator ${i + 1}/${all.length} failed, trying next...`);
+      console.log(
+        `[RETRY] "${description}" — locator ${i + 1}/${all.length} failed, trying next...`,
+      );
     }
   }
 
@@ -31,8 +31,8 @@ export async function resilientClick(
 
 export async function resilientFill(
   options: ResilientLocatorOptions,
-  value: string
-): Promise<void> {
+  value: string,
+): Promise<Locator> {
   const { description, primary, fallbacks = [] } = options;
   const all = [primary, ...fallbacks];
 
@@ -44,9 +44,11 @@ export async function resilientFill(
       if (i > 0) {
         console.log(`[HEALED] "${description}" — primary failed, used fallback #${i}`);
       }
-      return;
+      return locator;
     } catch {
-      console.log(`[RETRY] "${description}" — locator ${i + 1}/${all.length} failed, trying next...`);
+      console.log(
+        `[RETRY] "${description}" — locator ${i + 1}/${all.length} failed, trying next...`,
+      );
     }
   }
 
