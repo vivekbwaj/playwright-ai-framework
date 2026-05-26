@@ -1,4 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
+import { resilientFill } from '../utils/resilientLocator';
+import { aiHeal } from '../utils/aiHealer';
 
 export class TodoPage {
   readonly page: Page;
@@ -21,8 +23,24 @@ export class TodoPage {
   }
 
   async addTodo(text: string) {
-    await this.input.fill(text);
-    await this.input.press('Enter');
+    try {
+      await resilientFill({
+        description: 'todo input field',
+        primary: this.input,
+        fallbacks: [
+          this.page.locator('.new-todo'),
+          this.page.locator('input[type="text"]'),
+        ],
+      }, text);
+      await this.input.press('Enter');
+    } catch {
+      // All locators failed — ask AI for help
+      const result = await aiHeal(this.page, 'todo text input field');
+      if (result.healed) {
+        console.log(`[AI HEALER] Update your locator to: ${result.suggestedLocator}`);
+      }
+      throw new Error('addTodo failed — see AI healer suggestion above');
+    }
   }
 
   async completeTodo(index: number) {
