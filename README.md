@@ -1,204 +1,142 @@
 # playwright-ai-framework
 
-An AI-native Playwright test automation framework built with TypeScript. This is not a generic test suite — it's a framework designed to demonstrate how AI, agents, and self-healing capabilities change what modern test automation looks like.
+An AI-native Playwright test automation framework built with TypeScript. Demonstrates AI-assisted testing, self-healing locators, and agent-driven test generation using GitHub Copilot and Claude.
 
 Built by [Vivek Bhardwaj](https://linkedin.com/in/vivek-bhardwaj-4350087) — QA Practice Lead, Melbourne AU.
 
 ---
 
-## What this framework demonstrates
-
-- **AI-assisted test automation** using GitHub Copilot or Claude Code as pair programmer
-- **Self-healing locators** — two distinct approaches (see below)
-- **Agent-driven testing** via Playwright's native `init-agents` — planner, generator, healer
-- **Page Object Model** — clean separation of locators, actions, and assertions
-- **Production-grade structure** — CI/CD, tracing, screenshots, video on failure
-
----
+# Part 1 — Using the Framework
 
 ## Tech stack
 
-| Layer              | Choice                                                        |
-| ------------------ | ------------------------------------------------------------- |
-| Language           | TypeScript                                                    |
-| Test framework     | Playwright Test                                               |
-| AI pair programmer | GitHub Copilot or Claude Code (your choice)                   |
-| Agent model        | Claude Sonnet 4.6 (used by agent definitions)                 |
-| AI healing API     | Claude API (Anthropic)                                        |
-| Native agent loop  | Playwright `init-agents`                                      |
-| CI/CD              | GitHub Actions                                                |
-| Target app         | [TodoMVC via Playwright](https://demo.playwright.dev/todomvc) |
+| Layer              | Choice                                         |
+| ------------------ | ---------------------------------------------- |
+| Language           | TypeScript                                     |
+| Test framework     | Playwright Test                                |
+| AI pair programmer | GitHub Copilot or Claude (your choice)         |
+| Agent model        | Claude Sonnet 4.6                              |
+| AI healing API     | Claude API (Anthropic)                         |
+| Native agent loop  | Playwright `init-agents`                       |
+| CI/CD              | GitHub Actions                                 |
+| Target app         | [TodoMVC](https://demo.playwright.dev/todomvc) |
 
 ---
 
-## Choosing your AI tool — Copilot or Claude Code
+## Install
 
-This framework supports both GitHub Copilot and Claude Code. They are not mutually exclusive — you can use both. Here is what each one does and how to set up each.
+```bash
+git clone https://github.com/vivekbwaj/playwright-ai-framework.git
+cd playwright-ai-framework
+npm install
+npx playwright install
+npx playwright-cli install --skills
+```
 
 ---
 
-### Option A — GitHub Copilot (what this project was built with)
+## Run tests
 
-**Best for:** Day-to-day coding assistance, inline completions, chat in VS Code
-**Licence:** Free tier available at github.com/settings/copilot
-**Setup:** Install the GitHub Copilot extension in VS Code
+```bash
+# All tests
+npx playwright test
 
-**What Copilot reads in this repo:**
+# E2E tests only (custom self-healing)
+npx playwright test tests/e2e/
 
-- `.github/copilot-instructions.md` — your framework conventions
-- `.vscode/mcp.json` — Playwright MCP server (lets Copilot run tests directly)
+# Agent-generated tests only
+npx playwright test tests/agent/
 
-**Running agents with Copilot:**
-Open Copilot chat in VS Code, switch to Agent mode, then:
+# View HTML report
+npx playwright show-report
+```
+
+---
+
+## Run the agent loop — Option A: GitHub Copilot
+
+**Prerequisites:** GitHub Copilot extension in VS Code (free tier works), VS Code 1.105+
+
+Open Copilot chat → switch to **Agent mode** → run these in sequence:
+
+**Step 1 — Generate a test plan**
 
 ```
 Use @playwright-test-planner to generate a test plan for
-https://demo.playwright.dev/todomvc. Save to specs/basic-operations.md
+https://demo.playwright.dev/todomvc. Use tests/seed.spec.ts
+as the seed test. Save to specs/basic-operations.md
 ```
 
-**Limitation:** Copilot on the free tier used GPT-5 mini for the planner — it generated the plan from knowledge rather than live browser exploration.
+**Step 2 — Generate tests from the plan**
+
+```
+Use @playwright-test-generator to generate tests from
+specs/basic-operations.md. Save to tests/agent/
+```
+
+**Step 3 — Heal a failing test**
+
+```
+Use @playwright-test-healer to fix the failing test
+tests/agent/todo.spec.ts
+```
+
+**Limitation:** Copilot free tier uses GPT-5 mini — generates plan from knowledge, not live browser exploration.
 
 ---
 
-### Option B — Claude Code (recommended for agents)
+## Run the agent loop — Option B: Claude (recommended for agents)
 
-**Best for:** Running the full agentic loop properly — planner explores the live app in a real browser, generator writes accurate tests, healer fixes failures autonomously
-**Why better for agents:** The `.github/agents/*.agent.md` files explicitly specify `model: Claude Sonnet 4.6` — they were designed for Claude Code
-**Licence:** Requires Anthropic API key — get one free at console.anthropic.com
+**Prerequisites:** Claude extension in VS Code or Claude Code CLI + Anthropic API key
 
-**Setup:**
+**Why Claude is better for agents:** The agent definition files explicitly specify `model: Claude Sonnet 4.6` — they were designed for Claude.
+
+**Setup via Claude Code CLI:**
 
 ```bash
-# Install Claude Code globally
 npm install -g @anthropic/claude-code
-
-# Set your API key
 export ANTHROPIC_API_KEY=your-key-here
-
-# Run from your repo root
 cd playwright-ai-framework
 claude
 ```
 
-**What Claude Code reads in this repo:**
+**Setup via Claude extension in VS Code:** Open Claude chat panel — no extra install needed if extension is already installed.
 
-- `.claude/skills/playwright-cli/references/*.md` — teaches Claude Code how to use playwright-cli
-- `.github/agents/*.agent.md` — agent definitions with Claude Sonnet 4.6 model
-
-**Running agents with Claude Code:**
+**Step 1 — Generate a test plan**
 
 ```
-Use the playwright-test-planner agent to generate a test plan for
-https://demo.playwright.dev/todomvc. Use tests/seed.spec.ts as
-the seed test. Save to specs/basic-operations.md
+Use the playwright-test-planner agent defined in
+.github/agents/playwright-test-planner.agent.md to generate
+a test plan for https://demo.playwright.dev/todomvc.
+Use tests/seed.spec.ts as seed. Save to specs/basic-operations.md
+```
+
+**Step 2 — Generate tests from the plan**
+
+```
+Use the playwright-test-generator agent defined in
+.github/agents/playwright-test-generator.agent.md to generate
+tests from specs/basic-operations.md. Save to tests/agent/
+```
+
+**Step 3 — Heal a failing test**
+
+```
+Use the playwright-test-healer agent defined in
+.github/agents/playwright-test-healer.agent.md to fix
+tests/agent/todo.spec.ts
 ```
 
 ---
 
-### Side-by-side — Copilot vs Claude Code for agents
+## Two approaches to self-healing — choose what fits
 
-|                     | GitHub Copilot                    | Claude Code                         |
-| ------------------- | --------------------------------- | ----------------------------------- |
-| Setup               | VS Code extension                 | CLI + API key                       |
-| Cost                | Free tier available               | Pay per token                       |
-| Agent model         | GPT-5 mini (free) / GPT-4 (paid)  | Claude Sonnet 4.6                   |
-| Browser exploration | Knowledge-based (free tier)       | Live browser via playwright-cli     |
-| Reads               | `.github/copilot-instructions.md` | `.claude/skills/`                   |
-| Best for            | Daily coding assistance           | Full agentic loop                   |
-| Agent quality       | Good                              | Better — agents designed for Claude |
+### Approach 1 — Custom utilities (runtime healing)
 
-**Recommendation:** Use Copilot for writing code day-to-day. Use Claude Code when you want to run the full planner → generator → healer loop properly.
-
----
-
-## AI tools — what each one does
-
-| AI Tool        | Where it lives      | When it's used                           |
-| -------------- | ------------------- | ---------------------------------------- |
-| GitHub Copilot | VS Code sidebar     | While you're writing code                |
-| Claude Code    | Terminal CLI        | Full agentic loop — plan, generate, heal |
-| Claude API     | `utils/aiHealer.ts` | During test execution — runtime healing  |
-| playwright-cli | Terminal            | When agent is driving the browser        |
-
----
-
-## playwright-cli vs playwright-cli skills — the difference
-
-|              | `playwright-cli`                                      | `playwright-cli skills`                                      |
-| ------------ | ----------------------------------------------------- | ------------------------------------------------------------ |
-| What it is   | Command-line tool to drive Playwright via AI          | Reference `.md` docs installed locally                       |
-| What it does | Lets an AI agent run, inspect, interact with browsers | Teaches the AI agent what commands exist and how to use them |
-| Analogy      | The steering wheel                                    | The instruction manual for the steering wheel                |
-
-Skills without the CLI = documentation with no tool.
-CLI without skills = tool with no instructions — agent has to guess.
-
----
-
-## What every `.md` file in this framework does
-
-### `.claude/skills/playwright-cli/references/`
-
-Installed by `playwright-cli install --skills`. Read by Claude Code to understand playwright-cli commands:
-
-| File                     | Purpose                                                    |
-| ------------------------ | ---------------------------------------------------------- |
-| `element-attributes.md`  | How to inspect element attributes not visible in snapshots |
-| `playwright-tests.md`    | How to run and debug Playwright test suites                |
-| `request-mocking.md`     | How to intercept and mock network requests                 |
-| `running-code.md`        | How to execute arbitrary Playwright scripts                |
-| `session-management.md`  | How to manage multiple browser sessions                    |
-| `spec-driven-testing.md` | How to work with spec files and test plans                 |
-| `storage-state.md`       | How to persist cookies and localStorage between tests      |
-| `test-generation.md`     | How to generate tests from browser interactions            |
-| `tracing.md`             | How to record and inspect execution traces                 |
-| `video-recording.md`     | How to capture browser session videos                      |
-
-### `.github/`
-
-| File                                        | Purpose                                                           |
-| ------------------------------------------- | ----------------------------------------------------------------- |
-| `copilot-instructions.md`                   | Framework conventions — Copilot reads this before suggesting code |
-| `agents/playwright-test-planner.agent.md`   | Planner agent definition — model: Claude Sonnet 4.6               |
-| `agents/playwright-test-generator.agent.md` | Generator agent definition — model: Claude Sonnet 4.6             |
-| `agents/playwright-test-healer.agent.md`    | Healer agent definition — model: Claude Sonnet 4.6                |
-
-### `specs/`
-
-| File                  | Purpose                                              |
-| --------------------- | ---------------------------------------------------- |
-| `basic-operations.md` | Test plan generated by the planner agent for TodoMVC |
-
-### `tests/`
-
-| File           | Purpose                                                      |
-| -------------- | ------------------------------------------------------------ |
-| `seed.spec.ts` | Minimal bootstrap test — gives agents context about your app |
-
----
-
-## Two approaches to self-healing — choose what fits your context
-
-This framework deliberately implements **two different self-healing philosophies**. They are not mutually exclusive — they solve different problems at different points in the test lifecycle.
-
-### Approach 1 — Custom healing utilities (runtime)
-
-**Files:** `utils/resilientLocator.ts` and `utils/aiHealer.ts`
-
-**How it works:**
-
-- `resilientLocator.ts` implements a fallback locator chain — if the primary locator fails, it tries alternatives automatically during test execution
-- `aiHealer.ts` calls the Claude API at runtime — when all fallbacks fail, it takes a DOM snapshot, sends it to Claude, and gets a suggested locator back
-- Healing happens **during** the test run — the test never fails in the first place
-
-**When to use:**
-
-- You want runtime resilience without stopping the test run
-- You're in a CI pipeline and can't afford test failures on minor UI drift
-
-**How to use:**
+Healing happens **during** the test run. Test never fails in the first place.
 
 ```typescript
+// In your Page Object — use resilientFill instead of direct fill
 await resilientFill(
   {
     description: 'todo input field',
@@ -209,119 +147,97 @@ await resilientFill(
 );
 ```
 
-**Requires:** Anthropic API key in `.env` for `aiHealer.ts`
+- Layer 1: Semantic locators — rarely break
+- Layer 2: `resilientLocator.ts` — fallback chain at runtime
+- Layer 3: `aiHealer.ts` — Claude API called when all fallbacks fail
+
+**Requires:** Anthropic API key in `.env` for Layer 3
+
+### Approach 2 — Native init-agents (post-failure healing)
+
+Healing happens **after** the test fails. Agent patches the test file and reruns.
+
+Use the `@playwright-test-healer` prompt above (Copilot or Claude).
+
+**Requires:** Copilot or Claude in VS Code
+
+### Which to use?
+
+|               | Custom utilities       | Native init-agents     |
+| ------------- | ---------------------- | ---------------------- |
+| When          | During test run        | After test fails       |
+| Outcome       | Test passes silently   | Test file gets patched |
+| Tests live in | `tests/e2e/`           | `tests/agent/`         |
+| Best for      | CI pipeline resilience | Autonomous repair      |
 
 ---
 
-### Approach 2 — Playwright native init-agents (post-failure)
+## Adapting for a new website
 
-**Files:** `.github/agents/playwright-test-healer.agent.md`
-
-**How it works:**
-
-- When a test fails, the healer agent replays the failing steps, inspects the current UI, patches the test file, and reruns automatically
-- Healing happens **after** the test fails — the agent repairs the code itself
-
-**When to use:**
-
-- You want fully autonomous test repair without writing any healing code
-- You want to demonstrate cutting-edge Playwright agentic capabilities
-
-**How to use:**
-
-With Copilot Agent mode in VS Code:
-
-```
-Use @playwright-test-healer to fix the failing test tests/agent/todo.spec.ts
-```
-
-With Claude Code:
-
-```
-Use the playwright-test-healer agent to fix tests/agent/todo.spec.ts
-```
-
----
-
-### Side-by-side comparison
-
-|                      | Custom utilities      | Native init-agents     |
-| -------------------- | --------------------- | ---------------------- |
-| When healing happens | During test run       | After test fails       |
-| Who writes the fix   | Your code suggests it | Agent patches the file |
-| Test outcome         | Test passes silently  | Test file gets updated |
-| Setup needed         | Anthropic API key     | Copilot or Claude Code |
-| Tests live in        | `tests/e2e/`          | `tests/agent/`         |
-
----
-
-## Playwright MCP — what it is and how to set it up
-
-MCP (Model Context Protocol) lets an AI assistant call external tools as functions. The Playwright MCP server exposes Playwright's test runner as a callable tool — so instead of Copilot just suggesting test code, it can actually run tests and act on results.
-
-### Local setup — works with Copilot free tier
-
-`.vscode/mcp.json` is already configured in this repo:
-
-```json
-{
-  "servers": {
-    "playwright-test": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["playwright", "run-test-mcp-server"]
-    }
-  }
-}
-```
-
-Copilot in VS Code picks this up automatically. No extra steps needed.
-
-### GitHub cloud setup — requires paid Copilot licence
-
-To use with GitHub's cloud Copilot agent:
-
-1. Go to github.com → Settings → Copilot → Cloud agent → MCP configuration
-2. Add the same JSON config above
-
-**Note:** Requires Copilot Pro/Business. The local `.vscode/mcp.json` approach is sufficient for local development.
-
----
-
-## Adapting this framework for a new website
-
-Only Page Objects and specs change per site — everything else is reusable.
-
-### What to create
-
-```
-pages/newsite/home.page.ts       ← new Page Object
-tests/e2e/newsite/home.spec.ts   ← new spec file
-specs/newsite-operations.md      ← generated by planner
-```
-
-### What stays the same
-
-- `utils/resilientLocator.ts` and `utils/aiHealer.ts` — work for any site
-- `playwright.config.ts` — reporters, tracing, screenshots
-- `.github/agents/` — planner and generator work against any URL
-- `.github/copilot-instructions.md` — conventions apply everywhere
-
-### Quickstart
+Only Page Objects and specs change. Everything else is reusable.
 
 ```bash
 mkdir -p pages/newsite tests/e2e/newsite
 touch pages/newsite/home.page.ts tests/e2e/newsite/home.spec.ts
 ```
 
-Then in Copilot Agent mode or Claude Code:
-
-```
-Use @playwright-test-planner to generate a test plan for
-https://newsite.com. Save to specs/newsite-operations.md
-```
+Then run the planner against the new URL — it does the rest.
 
 ---
+
+## Current status
+
+### ✅ Phase 1 — Foundation
+
+- [x] TypeScript + Playwright configured
+- [x] Folder structure, copilot-instructions.md, playwright-cli skills
+
+### ✅ Phase 2 — Page Object Model
+
+- [x] `pages/todo.page.ts` — all locators and actions extracted from spec files
+
+### ✅ Phase 3 — Custom self-healing
+
+- [x] `utils/resilientLocator.ts` — fallback chain
+- [x] `utils/aiHealer.ts` — Claude API runtime healing
+- [x] Layer 2 validated — fallback kicks in when primary breaks
+
+### ✅ Phase 4 — Native agent loop
+
+- [x] Playwright init-agents installed
+- [x] MCP configured — `.vscode/mcp.json`
+- [x] Test plan generated — `specs/basic-operations.md`
+- [x] Tests generated — `tests/agent/`
+
+### 🔄 Phase 5 — Claude agent demo (in progress)
+
+- [ ] Run full planner → generator → healer loop via Claude
+- [ ] Compare Claude vs Copilot output
+- [ ] Healer demo on deliberately broken test
+
+### ⏳ Phase 6 — CI/CD
+
+- [ ] GitHub Actions workflow
+- [ ] Status badge on README
+
+---
+
+## Decision log
+
+| Decision                                   | Reason                                               |
+| ------------------------------------------ | ---------------------------------------------------- |
+| TypeScript over Python                     | Market demand, Playwright native language            |
+| Two repos                                  | Separate learning showcase from production framework |
+| TodoMVC as target app                      | Stable, publicly hosted, breakable for demos         |
+| Two self-healing approaches                | Shows depth (custom) and currency (native agents)    |
+| Copilot for coding, Claude API for runtime | Different tools, different jobs                      |
+| Claude for agent loop                      | Agent `.md` files specify Claude Sonnet 4.6          |
+
+---
+
+---
+
+# Part 2 — Knowledge Base
 
 ## Folder structure
 
@@ -332,7 +248,7 @@ playwright-ai-framework/
 ├── .github/
 │   ├── agents/                            # Agent definitions (Claude Sonnet 4.6)
 │   ├── workflows/                         # GitHub Actions CI
-│   └── copilot-instructions.md            # Copilot conventions
+│   └── copilot-instructions.md            # Copilot reads this for conventions
 ├── .vscode/
 │   └── mcp.json                           # Playwright MCP — local Copilot
 ├── specs/                                 # Test plans from planner agent
@@ -352,73 +268,105 @@ playwright-ai-framework/
 
 ---
 
-## Current status
+## What every `.md` file does
 
-### ✅ Phase 1 — Foundation (complete)
+### `.claude/skills/playwright-cli/references/`
 
-- [x] TypeScript + Playwright installed and configured
-- [x] Folder structure established
-- [x] `copilot-instructions.md` written
-- [x] `playwright-cli` installed with skills
+Created by `playwright-cli install --skills`. Teach AI agents how to use playwright-cli:
 
-### ✅ Phase 2 — Page Object Model (complete)
+| File                     | Purpose                                             |
+| ------------------------ | --------------------------------------------------- |
+| `element-attributes.md`  | Inspect element attributes not visible in snapshots |
+| `playwright-tests.md`    | Run and debug Playwright test suites                |
+| `request-mocking.md`     | Intercept and mock network requests                 |
+| `running-code.md`        | Execute arbitrary Playwright scripts                |
+| `session-management.md`  | Manage multiple browser sessions                    |
+| `spec-driven-testing.md` | Work with spec files and test plans                 |
+| `storage-state.md`       | Persist cookies and localStorage between tests      |
+| `test-generation.md`     | Generate tests from browser interactions            |
+| `tracing.md`             | Record and inspect execution traces                 |
+| `video-recording.md`     | Capture browser session videos                      |
 
-- [x] `pages/todo.page.ts` — locators and actions extracted
-- [x] Spec files use POM — no locators in test files
+### `.github/`
 
-### ✅ Phase 3 — Custom self-healing (complete)
+| File                                        | Purpose                                                      |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| `copilot-instructions.md`                   | Framework conventions — Copilot reads before suggesting code |
+| `agents/playwright-test-planner.agent.md`   | Planner — explores app, produces test plan                   |
+| `agents/playwright-test-generator.agent.md` | Generator — turns plan into test files                       |
+| `agents/playwright-test-healer.agent.md`    | Healer — fixes failing tests autonomously                    |
 
-- [x] `utils/resilientLocator.ts` — fallback locator chain
-- [x] `utils/aiHealer.ts` — Claude API runtime healing
-- [x] Layer 2 healing validated — fallback kicks in when primary breaks
+### `specs/`
 
-### ✅ Phase 4 — Native agent loop (complete)
+| File                  | Purpose                                          |
+| --------------------- | ------------------------------------------------ |
+| `basic-operations.md` | Test plan for TodoMVC generated by planner agent |
 
-- [x] Playwright init-agents installed — planner, generator, healer
-- [x] Playwright MCP server configured in `.vscode/mcp.json`
-- [x] Test plan generated — `specs/basic-operations.md`
-- [x] Tests generated by agent — `tests/agent/`
+### `tests/`
 
-### 🔄 Phase 5 — Agent healer demo (in progress)
-
-- [ ] Run healer agent on a deliberately broken test
-- [ ] Try full loop with Claude Code for live browser exploration
-
-### ⏳ Phase 6 — CI/CD (upcoming)
-
-- [ ] GitHub Actions workflow
-- [ ] Green status badge on README
+| File           | Purpose                                                 |
+| -------------- | ------------------------------------------------------- |
+| `seed.spec.ts` | Minimal bootstrap — gives agents context about your app |
 
 ---
 
-## Getting started
+## AI tools — roles explained
 
-### Prerequisites
+| Tool                           | Where               | When used                              |
+| ------------------------------ | ------------------- | -------------------------------------- |
+| GitHub Copilot                 | VS Code sidebar     | Writing code day to day                |
+| Claude extension / Claude Code | VS Code or terminal | Full agent loop — plan, generate, heal |
+| Claude API                     | `utils/aiHealer.ts` | Runtime healing during test execution  |
+| playwright-cli                 | Terminal            | Agent driving the browser              |
 
-- Node.js 18+
-- npm
-- GitHub Copilot in VS Code (free tier) — for Copilot path
-- Anthropic API key — for Claude Code path and `aiHealer.ts`
-- VS Code 1.105+
+---
 
-### Install
+## Copilot vs Claude Code for agents
 
-```bash
-git clone https://github.com/vivekbwaj/playwright-ai-framework.git
-cd playwright-ai-framework
-npm install
-npx playwright install
-npx playwright-cli install --skills
+|                     | GitHub Copilot                    | Claude Code                           |
+| ------------------- | --------------------------------- | ------------------------------------- |
+| Setup               | VS Code extension                 | CLI + API key or VS Code extension    |
+| Cost                | Free tier available               | Pay per token                         |
+| Agent model         | GPT-5 mini (free)                 | Claude Sonnet 4.6                     |
+| Browser exploration | Knowledge-based (free)            | Live browser via playwright-cli       |
+| Reads               | `.github/copilot-instructions.md` | `.claude/skills/` + agent `.md` files |
+| Best for            | Daily coding assistance           | Full agentic loop                     |
+
+---
+
+## playwright-cli vs playwright-cli skills
+
+|         | playwright-cli              | playwright-cli skills             |
+| ------- | --------------------------- | --------------------------------- |
+| What    | Command-line tool           | Reference `.md` docs              |
+| Does    | AI agent drives the browser | Teaches agent what commands exist |
+| Analogy | The steering wheel          | The instruction manual            |
+
+---
+
+## Playwright MCP
+
+MCP (Model Context Protocol) lets Copilot or Claude call Playwright as a tool — not just suggest code but actually run tests and act on results.
+
+**Local config** (already in repo — works free):
+`.vscode/mcp.json`
+
+```json
+{
+  "servers": {
+    "playwright-test": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["playwright", "run-test-mcp-server"]
+    }
+  }
+}
 ```
 
-### Run tests
+**GitHub cloud config** (requires paid Copilot licence):
+GitHub → Settings → Copilot → Cloud agent → MCP configuration → paste same JSON.
 
-```bash
-npx playwright test                        # all tests
-npx playwright test tests/e2e/             # e2e with custom healing
-npx playwright test tests/agent/           # agent-generated tests
-npx playwright show-report                 # HTML report
-```
+---
 
 **Author:** Vivek Bhardwaj
 **LinkedIn:** [linkedin.com/in/vivek-bhardwaj-4350087](https://linkedin.com/in/vivek-bhardwaj-4350087)
