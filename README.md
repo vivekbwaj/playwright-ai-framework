@@ -420,12 +420,6 @@ npx playwright test tests/agent/           # agent-generated tests
 npx playwright show-report                 # HTML report
 ```
 
----
-
-## About
-
-This framework is part of a 9-month AI QA upskilling roadmap targeting the Australian market.
-
 **Author:** Vivek Bhardwaj
 **LinkedIn:** [linkedin.com/in/vivek-bhardwaj-4350087](https://linkedin.com/in/vivek-bhardwaj-4350087)
 **Medium:** [medium.com/@vivekbwaj.88](https://medium.com/@vivekbwaj.88)
