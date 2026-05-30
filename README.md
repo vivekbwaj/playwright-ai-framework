@@ -81,7 +81,41 @@ Use @playwright-test-healer to fix the failing test
 tests/agent/todo.spec.ts
 ```
 
-**Limitation:** Copilot free tier uses GPT-5 mini — generates plan from knowledge, not live browser exploration.
+**Note on live browser exploration:** Copilot free tier uses GPT-5 mini and may generate the plan from knowledge rather than live browser exploration. To force live browser exploration with Copilot, be explicit in your prompt:
+
+```
+Use @playwright-test-planner with the playwright-test MCP server
+to explore https://demo.playwright.dev/todomvc in a live browser.
+Do not use prior knowledge — interact with the app directly.
+Use tests/seed.spec.ts as seed. Save plan to specs/basic-operations.md
+```
+
+Alternatively, use the Claude path (Option B) which uses Claude Sonnet 4.6 and live browser exploration by default.
+
+---
+
+## Getting Copilot to explore the live browser
+
+By default, Copilot free tier (GPT-5 mini) generates the test plan from its own knowledge of the app rather than exploring it live. There are three ways to fix this:
+
+**Option 1 — Force live exploration via explicit MCP prompt (free)**
+
+The `.vscode/mcp.json` already registers Playwright as a live tool. Use this prompt instead:
+
+```
+Use @playwright-test-planner with the playwright-test MCP server
+to explore https://demo.playwright.dev/todomvc in a live browser.
+Do not use prior knowledge — interact with the app directly.
+Use tests/seed.spec.ts as seed. Save plan to specs/basic-operations.md
+```
+
+**Option 2 — Upgrade Copilot (paid)**
+
+Copilot Pro ($10/month) gives access to GPT-4o or Claude Sonnet 4.6 — better models that follow MCP tool instructions more reliably.
+
+**Option 3 — Switch to Claude (recommended)**
+
+The Claude path (Option B below) uses Claude Sonnet 4.6 and live browser exploration by default. No extra cost beyond API usage.
 
 ---
 
@@ -367,6 +401,10 @@ MCP (Model Context Protocol) lets Copilot or Claude call Playwright as a tool �
 GitHub → Settings → Copilot → Cloud agent → MCP configuration → paste same JSON.
 
 ---
+
+## About
+
+This framework is part of a 9-month AI QA upskilling roadmap targeting the Australian market.
 
 **Author:** Vivek Bhardwaj
 **LinkedIn:** [linkedin.com/in/vivek-bhardwaj-4350087](https://linkedin.com/in/vivek-bhardwaj-4350087)
