@@ -3,3 +3,5 @@ playwright-report/
 test-results/
 .playwright/
 .vscode/
+.DS_Store
+**/.DS_Store
